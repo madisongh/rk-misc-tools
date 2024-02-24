@@ -85,7 +85,6 @@ typedef int (*option_routine_t)(context_t ctx, int argc, char * const argv[]);
 
 static int do_help(context_t ctx, int argc, char * const argv[]);
 static int do_show(context_t ctx, int argc, char * const argv[]);
-static int do_verify(context_t ctx, int argc, char * const argv[]);
 static int do_get(context_t ctx, int argc, char * const argv[]);
 static int do_set(context_t ctx, int argc, char * const argv[]);
 static int do_write(context_t ctx, int argc, char * const argv[]);
