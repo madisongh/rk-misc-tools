@@ -1,0 +1,2 @@
+d /run/rk-bootinfo 02770 root @LKDIRGROUP@ - -
+f /run/rk-bootinfo/lockfile 0770 root @LKDIRGROUP@ - -
