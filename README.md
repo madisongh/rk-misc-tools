@@ -31,8 +31,8 @@ driver.
 This package uses CMake for building.
 
 ## Dependencies
-This package depends on systemd, libz, libedit, and the UAPI headers from the
-Rockchip kernel.
+This package depends on systemd, libz, libedit, the UAPI headers from the
+Rockchip kernel, and the Rockchip OP-TEE client library and headers.
 
 # License
 Distributed under license. See the [LICENSE](LICENSE) file for details.
