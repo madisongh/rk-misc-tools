@@ -30,16 +30,8 @@
 #endif
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <getopt.h>
-#include <ctype.h>
 #include <libgen.h>
-#include <sys/stat.h>
-#include <sys/file.h>
-#include <zlib.h>
 #include "bootinfo.h"
 
 #define MAX_BOOT_FAILURES 3

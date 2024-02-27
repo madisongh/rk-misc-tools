@@ -10,15 +10,11 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
 #include <unistd.h>
-#include <limits.h>
 #include <fcntl.h>
-#include <errno.h>
 #include <libgen.h>
-#include <zlib.h>
 #include <sys/stat.h>
 
 #ifndef UBOOT_SIZE_KB
