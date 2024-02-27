@@ -33,7 +33,8 @@ set_bootdev_writeable_status (const char *bootdev, bool make_writeable)
 	char pathname_ro[64];
 	char pathname_force[64];
 	char buf[1];
-	int fd, is_writeable, rc = 0;
+	int fd, rc = 0;
+	bool is_writeable;
 
 	if (bootdev == NULL)
 		return false;
@@ -56,7 +57,7 @@ set_bootdev_writeable_status (const char *bootdev, bool make_writeable)
 	fd = open(pathname_force, O_WRONLY);
 	if (fd < 0)
 		return false;
-	buf[0] = make_writeable ? '1' : '0';
+	buf[0] = make_writeable ? '0' : '1';
 	if (write(fd, buf, 1) != 1)
 		rc = 1;
 	close(fd);
