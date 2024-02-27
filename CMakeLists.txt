@@ -13,6 +13,7 @@ set(CMAKE_C_STANDARD 11)
 set(LKDIRGROUP "root" CACHE STRING "Group owner for lock directory")
 set(STORAGE_DEV "/dev/mmcblk0boot1" CACHE STRING "Device for variable storage")
 set(STORAGE_OFFSET "0x80000" CACHE STRING "Offset to start of variable storage")
+set(TARGET "RK3588" CACHE STRING "Target SoC model")
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
@@ -41,4 +42,9 @@ target_compile_definitions(rk-bootinfo PUBLIC
 target_link_libraries(rk-bootinfo PUBLIC PkgConfig::ZLIB)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/rk-bootinfo.conf DESTINATION ${TMPFILESDIR})
 
+add_executable(rk-update-bootloader rk-update-bootloader.c)
+target_compile_definitions(rk-update-bootloader PUBLIC
+        VERSION="${PROJECT_VERSION}"
+        TARGET=${TARGET}
+)
 install(TARGETS rkvendor-tool rk-otp-tool rk-bootinfo RUNTIME)

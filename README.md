@@ -21,6 +21,10 @@ use on targets that implement an read-only root filesystem. U-Boot can be
 patched to retrieve the value from the OTP and include it as part of the
 kernel command line.
 
+## rk-update-bootloader
+This tool can be used to update the idblock and U-Boot bootloaders, including
+redundant copies of each.
+
 ## rkvendor-tool
 The `rkvendor-tool` tool provides access to the Rockchip-specific
 vendor storage data, for getting or setting MAC addresses and the
