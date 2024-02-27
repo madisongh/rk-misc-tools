@@ -162,8 +162,8 @@ write_completely_at (int fd, void *buf, size_t bufsiz, off_t offset, size_t eras
  * process_idblock
  *
  * Updates or verifies the IDBLOCK slots.  On systems booting from eMMC,
- * the idblock is expected at sector 34 (just after the GPT),
- * with up to 4 backup copies at 1024-sector intervals thereafter.
+ * the idblock is expected at sector 64, with up to 4 backup copies at
+ * 1024-sector intervals thereafter.
  *
  * update: true if updating, false if just verifying
  * bootfd: file descriptor for boot device
@@ -189,7 +189,7 @@ process_idblock (bool update, int bootfd, void *idblock, size_t idblock_len)
 	}
 	if (update)
 		printf("idblock: ");
-	for (i = 1, offset = 34 * 512; i <= 5; i++, offset += 1024 * 512) {
+	for (i = 1, offset = 64 * 512; i <= 5; i++, offset += 1024 * 512) {
 		if (read_completely_at(bootfd, idb_buf, sizeof(idb_buf), offset) < 0) {
 			perror("idblock read");
 			return -1;
@@ -207,9 +207,10 @@ process_idblock (bool update, int bootfd, void *idblock, size_t idblock_len)
 		}
 	}
 
-	fsync(bootfd);
-	if (update)
+	if (update) {
+		fsync(bootfd);
 		printf("[OK]\n");
+	}
 	return mismatched;
 
 } /* process_idblock */
@@ -267,9 +268,10 @@ process_uboot (bool update, int bootfd, void *ubootimg, size_t ubootimg_len, off
 		}
 	}
 
-	fsync(bootfd);
-	if (update)
+	if (update) {
+		fsync(bootfd);
 		printf("[OK]\n");
+	}
 	return mismatched;
 
 } /* process_uboot */
