@@ -47,4 +47,4 @@ target_compile_definitions(rk-update-bootloader PUBLIC
         VERSION="${PROJECT_VERSION}"
         TARGET=${TARGET}
 )
-install(TARGETS rkvendor-tool rk-otp-tool rk-bootinfo RUNTIME)
+install(TARGETS rkvendor-tool rk-otp-tool rk-bootinfo rk-update-bootloader RUNTIME)
