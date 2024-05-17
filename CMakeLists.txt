@@ -3,7 +3,7 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project(rk_misc_tools LANGUAGES C VERSION 0.1.0)
+project(rk_misc_tools LANGUAGES C VERSION 0.2.0)
 
 include(GNUInstallDirs)
 
@@ -34,17 +34,26 @@ add_executable(rk-otp-tool rk-otp-tool.c)
 target_link_libraries(rk-otp-tool PUBLIC teec)
 
 configure_file(config-files/rk-bootinfo.conf.in rk-bootinfo.conf @ONLY)
-add_executable(rk-bootinfo rk-bootinfo.c bootinfo.c bootinfo.h util.c util.h posix-crc32.c posix-crc32.h)
+configure_file(librkbootinfo.pc.in librkbootinfo.pc @ONLY)
+add_library(rkbootinfo SHARED bootinfo.c bootinfo.h util.c util.h)
+set_target_properties(rkbootinfo PROPERTIES
+    VERSION 1.0.0
+    SOVERSION 1)
+target_link_libraries(rkbootinfo PUBLIC PkgConfig::ZLIB)
+add_executable(rk-bootinfo rk-bootinfo.c)
 target_compile_definitions(rk-bootinfo PUBLIC
   VERSION="${PROJECT_VERSION}"
   BOOTINFO_STORAGE_DEVICE="${STORAGE_DEV}"
   BOOTINFO_STORAGE_OFFSET_A=${STORAGE_OFFSET})
-target_link_libraries(rk-bootinfo PUBLIC PkgConfig::ZLIB)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/rk-bootinfo.conf DESTINATION ${TMPFILESDIR})
+target_link_libraries(rk-bootinfo PUBLIC rkbootinfo)
 
 add_executable(rk-update-bootloader rk-update-bootloader.c)
 target_compile_definitions(rk-update-bootloader PUBLIC
         VERSION="${PROJECT_VERSION}"
         TARGET=${TARGET}
 )
+install(TARGETS rkbootinfo LIBRARY)
+install(FILES bootinfo.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rkbootinfo")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/librkbootinfo.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install(TARGETS rkvendor-tool rk-otp-tool rk-bootinfo rk-update-bootloader RUNTIME)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/rk-bootinfo.conf DESTINATION ${TMPFILESDIR})
