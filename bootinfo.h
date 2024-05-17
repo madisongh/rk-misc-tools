@@ -2,6 +2,10 @@
 #define bootinfo_h_included
 /* Copyright (c) 2022, Matthew Madison */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct devinfo_context;
 typedef struct devinfo_context bootinfo_ctx_t;
 
@@ -23,5 +27,9 @@ int bootinfo_bootvar_get(bootinfo_ctx_t *ctx, const char *name, char **value);
 int bootinfo_bootvar_set(bootinfo_ctx_t *ctx, const char *name, const char *value);
 int bootinfo_update(bootinfo_ctx_t *ctx);
 void bootinfo_close(bootinfo_ctx_t *ctx);
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif /* bootinfo_h_included */
