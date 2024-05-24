@@ -3,7 +3,7 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project(rk_misc_tools LANGUAGES C VERSION 0.2.0)
+project(rk_misc_tools LANGUAGES C VERSION 0.2.1)
 
 include(GNUInstallDirs)
 
@@ -39,12 +39,13 @@ add_library(rkbootinfo SHARED bootinfo.c bootinfo.h util.c util.h)
 set_target_properties(rkbootinfo PROPERTIES
     VERSION 1.0.0
     SOVERSION 1)
+target_compile_definitions(rkbootinfo PUBLIC
+  BOOTINFO_STORAGE_DEVICE="${STORAGE_DEV}"
+  BOOTINFO_STORAGE_OFFSET_A=${STORAGE_OFFSET})
 target_link_libraries(rkbootinfo PUBLIC PkgConfig::ZLIB)
 add_executable(rk-bootinfo rk-bootinfo.c)
 target_compile_definitions(rk-bootinfo PUBLIC
-  VERSION="${PROJECT_VERSION}"
-  BOOTINFO_STORAGE_DEVICE="${STORAGE_DEV}"
-  BOOTINFO_STORAGE_OFFSET_A=${STORAGE_OFFSET})
+  VERSION="${PROJECT_VERSION}")
 target_link_libraries(rk-bootinfo PUBLIC rkbootinfo)
 
 add_executable(rk-update-bootloader rk-update-bootloader.c)
