@@ -15,6 +15,7 @@ set(STORAGE_DEV "/dev/mmcblk0boot1" CACHE STRING "Device for variable storage")
 set(STORAGE_OFFSET "0x80000" CACHE STRING "Offset to start of variable storage")
 set(TARGET "RK3588" CACHE STRING "Target SoC model")
 
+string(SUBSTRING "${TARGET}" 2 -1 TARGET_STRIPPED)
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 find_package(PkgConfig REQUIRED)
@@ -51,7 +52,7 @@ target_link_libraries(rk-bootinfo PUBLIC rkbootinfo)
 add_executable(rk-update-bootloader rk-update-bootloader.c)
 target_compile_definitions(rk-update-bootloader PUBLIC
         VERSION="${PROJECT_VERSION}"
-        TARGET=${TARGET}
+        TARGET=${TARGET_STRIPPED}
 )
 install(TARGETS rkbootinfo LIBRARY)
 install(FILES bootinfo.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rkbootinfo")

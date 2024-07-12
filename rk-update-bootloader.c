@@ -18,9 +18,9 @@
 #include <sys/stat.h>
 
 #ifndef UBOOT_SIZE_KB
-#if TARGET == RK3588
+#if TARGET == 3588
 #define UBOOT_SIZE_KB 4096
-#elif TARGET == RK3568
+#elif TARGET == 3568
 #define UBOOT_SIZE_KB 2048
 #else
 #error unknown TARGET
@@ -39,7 +39,7 @@ static struct option options[] = {
 	{ "version",		no_argument,		0, 0   },
 	{ 0,			0,			0, 0   }
 };
-static const char *shortopts = ":ins:h";
+static const char *shortopts = ":hv";
 
 static char *optarghelp[] = {
 	"--help               ",
