@@ -424,7 +424,7 @@ do_set (context_t ctx, int argc, char * const argv[])
 			}
 		} else
 			memset(addr_pair + ETH_ALEN, 0, ETH_ALEN);
-		fill_vendor_req(&ctx->data[idx], rkvendor_fields[i].id, sizeof(addr), addr);
+		fill_vendor_req(&ctx->data[idx], rkvendor_fields[i].id, sizeof(addr_pair), addr_pair);
 		ctx->modified[idx] = true;
 		break;
 	default:
