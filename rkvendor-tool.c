@@ -56,18 +56,18 @@ typedef enum {
 #define VENDOR_SN_MAX 513
 #define VENDOR_MAX_ETHER 2
 
-static struct RK_VENDOR_REQ *fill_vendor_req(struct RK_VENDOR_REQ *req, rkvendor_id_type id, size_t len, void *data)
+static struct RK_VENDOR_REQ *fill_vendor_req(struct RK_VENDOR_REQ *req, bool writing, rkvendor_id_type id, size_t len, void *data)
 {
 	req->tag = VENDOR_REQ_TAG;
 	req->id = (__u16) id;
-	if (len != 0) {
+	if (writing) {
 		if (len > sizeof(req->data))
 			len = sizeof(req->data);
 		req->len = (__u16) len;
+		if (len != 0 && data != NULL)
+			memcpy(req->data, data, len);
 	} else
 		req->len = sizeof(req->data);
-	if (len != 0 && data != NULL)
-		memcpy(req->data, data, len);
 	return req;
 }
 
@@ -147,7 +147,7 @@ get_vendor_data (struct context_s *ctx, int i)
 	if (ctx->havedata[idx])
 		return 0;
 	ret = ioctl(ctx->fd, VENDOR_READ_IO,
-		    fill_vendor_req(&ctx->data[idx], rkvendor_fields[i].id, 0, 0));
+		    fill_vendor_req(&ctx->data[idx], false, rkvendor_fields[i].id, 0, 0));
 	if (ret) {
 		if (errno != EPERM)
 			return -1;
@@ -200,7 +200,12 @@ parse_macaddr (uint8_t *a, const char *buf)
 	const char *cp = buf;
 	int count = 0;
 
-	while (*cp != '\0' && count < 6) {
+	/* empty string == all-zero address */
+	if (*cp == '\0') {
+		memset(a, 0, ETH_ALEN);
+		return 0;
+	}
+	while (*cp != '\0' && count < ETH_ALEN) {
 		if (!isxdigit(*cp) || !isxdigit(*(cp+1)))
 			break;
 		a[count++] = (hexdigit(tolower(*cp)) << 4) | hexdigit(tolower(*(cp+1)));
@@ -373,12 +378,17 @@ do_set (context_t ctx, int argc, char * const argv[])
 	int i, idx;
 	uint8_t addr[ETH_ALEN];
 	uint8_t addr_pair[ETH_ALEN*2];
+	const char *value;
 	size_t len;
 
-	if (argc < 2) {
-		fprintf(stderr, "missing required arguments: <field-name> <value>\n");
+	if (argc < 1) {
+		fprintf(stderr, "missing field name argument\n");
 		return 1;
 	}
+	if (argc < 2)
+		value = "";
+	else
+		value = argv[1];
 	i = parse_fieldname(argv[0]);
 	if (i < 0) {
 		fprintf(stderr, "unrecognized field name: %s\n", argv[0]);
@@ -396,24 +406,24 @@ do_set (context_t ctx, int argc, char * const argv[])
 
 	switch (rkvendor_fields[i].fieldtype) {
 	case char_string:
-		len = strlen(argv[1]);
+		len = strlen(value);
 		if (len >= rkvendor_fields[i].maxsize) {
 			fprintf(stderr, "Error: value longer than field length (%zu)\n", rkvendor_fields[i].maxsize-1);
 			return 1;
 		}
-		fill_vendor_req(&ctx->data[idx], rkvendor_fields[i].id, len, argv[1]);
+		fill_vendor_req(&ctx->data[idx], true, rkvendor_fields[i].id, len, argv[1]);
 		ctx->modified[idx] = true;
 		break;
 	case mac_address:
-		if (parse_macaddr(addr, argv[1]) < 0) {
+		if (parse_macaddr(addr, value) < 0) {
 			fprintf(stderr, "Error: could not parse MAC address '%s'\n", argv[1]);
 			return 1;
 		}
-		fill_vendor_req(&ctx->data[idx], rkvendor_fields[i].id, sizeof(addr), addr);
+		fill_vendor_req(&ctx->data[idx], true, rkvendor_fields[i].id, sizeof(addr), addr);
 		ctx->modified[idx] = true;
 		break;
 	case mac_address_pair:
-		if (parse_macaddr(addr_pair, argv[1]) < 0) {
+		if (parse_macaddr(addr_pair, value) < 0) {
 			fprintf(stderr, "Error: could not parse MAC address '%s'\n", argv[1]);
 			return 1;
 		}
@@ -424,7 +434,7 @@ do_set (context_t ctx, int argc, char * const argv[])
 			}
 		} else
 			memset(addr_pair + ETH_ALEN, 0, ETH_ALEN);
-		fill_vendor_req(&ctx->data[idx], rkvendor_fields[i].id, sizeof(addr_pair), addr_pair);
+		fill_vendor_req(&ctx->data[idx], true, rkvendor_fields[i].id, sizeof(addr_pair), addr_pair);
 		ctx->modified[idx] = true;
 		break;
 	default:
