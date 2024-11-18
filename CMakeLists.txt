@@ -3,7 +3,7 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project(rk_misc_tools LANGUAGES C VERSION 1.0.0)
+project(rk_misc_tools LANGUAGES C VERSION 1.1.0)
 
 include(GNUInstallDirs)
 

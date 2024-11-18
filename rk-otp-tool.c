@@ -16,6 +16,7 @@
 #include <tee_client_api.h>
 
 #define RKSTORAGE_TA_UUID { 0x2d26d8a8, 0x5134, 0x4dd8, { 0xb3, 0x2f, 0xb3, 0x4b, 0xce, 0xeb, 0xc4, 0x71 } }
+#define RKSTORAGE_CMD_READ_ENABLE_FLAG		5
 #define RKSTORAGE_CMD_WRITE_OEM_NP_OTP		12
 #define RKSTORAGE_CMD_READ_OEM_NP_OTP		13
 
@@ -24,20 +25,23 @@ static char machineid[32];
 static char *progname;
 
 static struct option options[] = {
+	{ "check-secure-boot",	no_argument,		0, 's' },
 	{ "show-machine-id",	no_argument,		0, 'm' },
 	{ "set-machine-id",	required_argument,	0, 'M' },
 	{ "help",		no_argument,		0, 'h' },
 	{ 0,			0,			0, 0   }
 };
-static const char *shortopts = ":mM:h";
+static const char *shortopts = ":mM:hs";
 
 static char *optarghelp[] = {
+	"--check-secure-boot  ",
 	"--show-machine-id    ",
 	"--set-machine-id     ",
-	"--help		      ",
+	"--help               ",
 };
 
 static char *opthelp[] = {
+	"check that the verified-boot flag is set for secure boot",
 	"show machine ID programmed into the OTP non-protected OEM zone",
 	"program a machine ID into the OTP non-protected OEM zone, arg is 32-byte hex string",
 	"display this help text"
@@ -137,6 +141,53 @@ access_oem_np_otp_zone (otp_optype op, unsigned int offset, void *buf, size_t bu
 	TEEC_FinalizeContext(&ctx);
 	return retval;
 }
+
+static int
+get_secure_boot_enable_flag (bool *enabled)
+{
+	TEEC_Result result;
+	TEEC_Context ctx;
+	TEEC_Session sess;
+	TEEC_Operation oper;
+	TEEC_UUID rkstorage_uuid = RKSTORAGE_TA_UUID;
+	uint32_t cmd, origin, vbootflag;
+	int retval;
+
+	memset(&oper, 0, sizeof(oper));
+
+	oper.paramTypes = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_OUTPUT,
+					   TEEC_NONE, TEEC_NONE, TEEC_NONE);
+	oper.params[0].tmpref.size = sizeof(vbootflag);
+	oper.params[0].tmpref.buffer = &vbootflag;
+	cmd = RKSTORAGE_CMD_READ_ENABLE_FLAG;
+	result = TEEC_InitializeContext(NULL, &ctx);
+	if (result != TEEC_SUCCESS) {
+		fprintf(stderr, "Error initializing TEE client context: 0x%x\n", result);
+		return -1;
+	}
+
+	result = TEEC_OpenSession(&ctx, &sess, &rkstorage_uuid,
+				  TEEC_LOGIN_PUBLIC, NULL, NULL, &origin);
+	if (result != TEEC_SUCCESS) {
+		fprintf(stderr, "Error opening session to rkstorage TA: 0x%x (origin 0x%x)\n",
+			result, origin);
+		TEEC_FinalizeContext(&ctx);
+		return -1;
+	}
+	result = TEEC_InvokeCommand(&sess, cmd, &oper, &origin);
+	if (result == TEEC_SUCCESS) {
+		retval = 0;
+		*enabled = vbootflag == 0xff;
+	} else {
+		fprintf(stderr, "Error invoking command %u: 0x%x (origin 0x%x)\n",
+			cmd, result, origin);
+		retval = -1;
+	}
+	TEEC_CloseSession(&sess);
+	TEEC_FinalizeContext(&ctx);
+	return retval;
+}
+
 /*
  * show_machine_id
  *
@@ -190,6 +241,16 @@ set_machine_id (void)
 
 } /* set_machine_id */
 
+static int
+show_secure_boot (void)
+{
+	bool enabled;
+	if (get_secure_boot_enable_flag(&enabled) < 0)
+		return 1;
+	printf("Secure boot %sABLED\n", (enabled ? "EN" : "DIS"));
+	return 0;
+}
+
 /*
  * main program
  */
@@ -239,6 +300,9 @@ main (int argc, char * const argv[])
 				return 1;
 			}
 			dispatch = set_machine_id;
+			break;
+		case 's':
+			dispatch = show_secure_boot;
 			break;
 		default:
 			fprintf(stderr, "Error: unrecognized option\n");

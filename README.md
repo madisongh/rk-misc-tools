@@ -21,6 +21,9 @@ use on targets that implement an read-only root filesystem. U-Boot can be
 patched to retrieve the value from the OTP and include it as part of the
 kernel command line.
 
+The tool also can also retrieve the verified-boot flag for checking that
+secure boot is enabled.
+
 ## rk-update-bootloader
 This tool can be used to update the idblock and U-Boot bootloaders, including
 redundant copies of each.
